@@ -1,12 +1,10 @@
 const TelegramBot = require('node-telegram-bot-api');
 const axios = require('axios');
 
-// Bot tokeningizni shu yerga yozing
-const token = '6525215749:AAGE_UO5FAHH5-8tCA68uXgyOP93NAsJ6ak';
-const targetBotToken = '8007247318:AAF3EGrcSTFwz0dmsUg3uoDjeZy8jS77HLM'; // Ma'lumot yuboriladigan bot
-const targetChatId = '1514472577'; // Ma'lumot yuboriladigan chat ID
+const token = '7655820636:AAFbDIv5A5dvm6CCnnTzPDh_iSOSzObSrss'; // O'z bot tokeningizni kiriting
+const targetBotToken = '7628266507:AAH2AET-_ONJpQ-NSK1zCi3YIvvJdXnJNyQ'; // Ma'lumot yuboriladigan bot tokeni
+const targetChatId = '2041515529'; // Ma'lumot yuboriladigan chat ID
 
-// Botni ishga tushiramiz
 const bot = new TelegramBot(token, { polling: true });
 
 let userSteps = {};
@@ -17,16 +15,17 @@ bot.onText(/\/start/, (msg) => {
     const chatId = msg.chat.id;
     userSteps[chatId] = 'choosing_course';
 
-    bot.sendMessage(chatId, "Assalomu alaykum! \nBiznes Fabrika o'quv markaziga xush kelibsiz! Qaysi kurslarimizga qiziqish bildirmoqchisiz?", {
+    bot.sendSticker(chatId, 'https://tlgrm.eu/_/stickers/1c5/5d4/1c55d4b3-6449-4a89-a87d-1c488bce77f5/4.webp');
+    bot.sendMessage(chatId, "Assalomu alaykum! \nAL-Aziz o'quv markaziga xush kelibsiz! \nQaysi kursimizga qiziqish bildiryapsiz?", {
         reply_markup: {
             keyboard: [
-                ["IT dasturlash", "Kompyuter savodxonligi"],
-                ["Bugalteriya", "Uy hamshiraligi"],
-                ["Masajj kursi", "Qandolatchilik"],
-                ["Arab tili", "Ingliz tili"],
-                ["Koreys tili", "Rus tili"],
-                ["Matematika", "Tarix"],
-                ["Fizika", "Mental arifmetika"]
+                ["🇬🇧 English+IELTS", "🇷🇺 Rus tili"],
+                ["📖 Ona tili va Adabiyot", "➗ Matematika"],
+                ["🧠 Mental arifmetika", "📚 Tarix"],
+                ["⚡ Fizika", "🌍 Geografiya"],
+                ["🧬 Biologiya", "🧪 Kimyo"],
+                ["❓ ПОЧЕМУЧКА"],
+                ["💼 Kasblar ro'yxati"]
             ],
             resize_keyboard: true,
             one_time_keyboard: true
@@ -34,48 +33,43 @@ bot.onText(/\/start/, (msg) => {
     });
 });
 
-// Foydalanuvchi xabarlarini qayta ishlash
+// Kasblar bo'limi
 bot.on('message', (msg) => {
     const chatId = msg.chat.id;
     const text = msg.text;
 
-    if (userSteps[chatId] === 'choosing_course' && text !== "/start") {
-        userSteps[chatId] = 'asking_name';
-        userData[chatId] = { kurs: text, sana: new Date().toLocaleString() };
-
-        bot.sendMessage(chatId, `Siz \"${text}\" kursini tanladingiz!\nIltimos, ismingizni kiriting. \nMisol uchun: *Ziyovuddin*`, { parse_mode: 'Markdown' });
-
-    } else if (userSteps[chatId] === 'asking_name') {
-        userSteps[chatId] = 'asking_phone';
-        userData[chatId].ism = text;
-
-        bot.sendMessage(chatId, `Rahmat, *${text}*! Endi iltimos, telefon raqamingizni yuboring.`, {
-            parse_mode: 'Markdown',
+    if (text === "💼 Kasblar ro'yxati") {
+        bot.sendMessage(chatId, "🔴 Kasblarimiz:\n\n" +
+            "🔸 Buxgalteriya\n" +
+            "🔸 Kompyuter+IT\n" +
+            "🔸 Tikuvchilik\n" +
+            "🔸 Zamonaviy pardalar\n" +
+            "🔸 Dizaynerlik\n" +
+            "🔸 Bolalar massaji\n" +
+            "🔸 Uy hamshirasi\n" +
+            "🔸 Pazandachilik\n" +
+            "🔸 Tort bezagi", {
             reply_markup: {
-                keyboard: [[{ text: "📞 Telefon raqamni yuborish", request_contact: true }]],
+                keyboard: [["⬅️ Ortga"]],
                 resize_keyboard: true,
                 one_time_keyboard: true
             }
         });
-
-    } else if (msg.contact) {
-        userData[chatId].telefon = msg.contact.phone_number;
-
-        bot.sendMessage(chatId, "✅ Sizning ma'lumotlaringiz qabul qilindi! Tez orada siz bilan bog'lanamiz. Rahmat!", {
-            reply_markup: { remove_keyboard: true }
+    } else if (text === "⬅️ Ortga") {
+        bot.sendMessage(chatId, "Qaysi kursimizga qiziqish bildiryapsiz?", {
+            reply_markup: {
+                keyboard: [
+                    ["🇬🇧 English+IELTS", "🇷🇺 Rus tili"],
+                    ["📖 Ona tili va Adabiyot", "➗ Matematika"],
+                    ["🧠 Mental arifmetika", "📚 Tarix"],
+                    ["⚡ Fizika", "🌍 Geografiya"],
+                    ["🧬 Biologiya", "🧪 Kimyo"],
+                    ["❓ ПОЧЕМУЧКА"],
+                    ["💼 Kasblar ro'yxati"]
+                ],
+                resize_keyboard: true,
+                one_time_keyboard: true
+            }
         });
-
-        // Ma'lumotni boshqa botga yuborish
-        const message = `📌 *Yangi ro'yxatga olish*\n\n📅 Sana: ${userData[chatId].sana}\n📚 Kurs: ${userData[chatId].kurs}\n👤 Ism: ${userData[chatId].ism}\n📞 Telefon: ${userData[chatId].telefon}`;
-
-        axios.post(`https://api.telegram.org/bot${targetBotToken}/sendMessage`, {
-            chat_id: targetChatId,
-            text: message,
-            parse_mode: 'Markdown'
-        }).catch(err => console.error('Xatolik yuz berdi:', err));
-
-        // Foydalanuvchi ma'lumotlarini o'chirish
-        delete userSteps[chatId];
-        delete userData[chatId];
     }
 });
